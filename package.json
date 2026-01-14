@@ -1,0 +1,68 @@
+{
+  "name": "@explita/env-loader",
+  "version": "0.1.0",
+  "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.",
+  "keywords": [
+    "environment-variables",
+    "env",
+    "dotenv",
+    "configuration",
+    "secrets",
+    "config",
+    "loader",
+    "multi-file",
+    "hot-reload",
+    "file-watch",
+    "cross-platform",
+    "nodejs",
+    "nextjs",
+    "typescript",
+    "zero-dependency",
+    "production-ready"
+  ],
+  "author": "Explita",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./auto": {
+      "import": "./dist/core/auto-config.js",
+      "require": "./dist/core/auto-config.js",
+      "types": "./dist/core/auto-config.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/explita/env-loader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/explita/env-loader/issues"
+  },
+  "homepage": "https://github.com/explita/env-loader#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.8",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+}
