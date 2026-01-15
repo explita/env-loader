@@ -13,6 +13,8 @@ Advanced environment variable loader with multi-file support, hot reload, and cr
 - **Enterprise Ready**: Supports `/etc/internal-secrets.env` out of the box for secure deployments.
 - **Standard Compliant**: Supports `#` comments, inline comments, and `export` prefixes.
 
+#
+
 ## 📦 Installation
 
 ```bash
@@ -35,9 +37,11 @@ import { loadEnv } from "@explita/env-loader";
 loadEnv();
 ```
 
+#
+
 ### Automatic Loading (Preload)
 
-You can automatically load environment variables by importing the auto-config module. This is ideal for Next.js or scripts where you want zero-config loading based on your `NODE_ENV`.
+You can automatically load environment variables by importing the auto-config module. This is ideal for an environment or scripts where you want zero-config loading based on your `NODE_ENV`.
 
 ```typescript
 // ES Modules
@@ -47,6 +51,8 @@ import "@explita/env-loader/auto";
 require("@explita/env-loader/auto");
 ```
 
+Import this once at the start of your application or entry point.
+
 The auto-loader searches for files in this priority order:
 
 1. `/etc/internal-secrets.env`
@@ -54,6 +60,8 @@ The auto-loader searches for files in this priority order:
 3. `.env.${NODE_ENV}`
 4. `.env.local`
 5. `.env`
+
+#
 
 ### Custom Configuration
 
@@ -68,6 +76,8 @@ loadEnv({
 });
 ```
 
+#
+
 ### 🏢 System-wide Secrets & Enterprise Use
 
 The `internal-secrets.env` file is a powerful feature for enterprise environments and local development workflows. It allows you to maintain a single source of truth for sensitive credentials that are shared across multiple projects (e.g., database passwords, cloud provider keys).
@@ -79,6 +89,8 @@ The `internal-secrets.env` file is a powerful feature for enterprise environment
 - **Cross-platform Compatibility**:
   - **Linux/macOS**: `/etc/internal-secrets.env`
   - **Windows**: `\etc\internal-secrets.env` (resolves to the root of the current drive, e.g., `C:\etc\...` or `D:\etc\...`)
+
+#
 
 ### ⚠️ Next.js Production Warning
 
@@ -103,6 +115,8 @@ const apiKey = process.env.API_KEY; // Access directly
 
 Next.js performs static analysis and "inlines" environment variables during the build process. If you export them from a custom configuration file that loads them at runtime from an external path, they may not be correctly captured or available in the production bundle.
 
+#
+
 ### ⚙️ API Reference
 
 #### `loadEnv(options?: LoadOptions | string | string[])`
@@ -118,9 +132,13 @@ Next.js performs static analysis and "inlines" environment variables during the 
 | `requireAny`       | `boolean`            | `true`                       | If `true`, at least one file must exist for the loader to succeed.                               |
 | `generateTypes`    | `boolean \| string`  | `false`                      | If `true`, generates `env.d.ts`. If a string, specifies the output path.                         |
 
+#
+
 ### 🛡 Security
 
 Sensitive variables containing keywords like `key`, `secret`, `token`, or `password` are automatically masked in the verbose output to prevent accidental exposure in logs.
+
+#
 
 ### 📄 License
 
