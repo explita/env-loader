@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { LoadOptions } from "../types";
-import { updateFiles } from "./update-files";
+import type { LoadOptions } from "../types.js";
+import { updateFiles } from "./update-files.js";
 
 /**
  * Generate TypeScript declaration file

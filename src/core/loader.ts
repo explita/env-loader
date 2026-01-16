@@ -1,8 +1,9 @@
-import { LoadOptions } from "../types";
+import type { LoadOptions } from "../types.js";
 import fs from "fs";
 import path from "path";
-import { generateEnvTypes } from "./generate-types";
-import { SYSTEM_SECRETS_PATH } from "../lib/constants";
+import { generateEnvTypes } from "./generate-types.js";
+import { SYSTEM_SECRETS_PATH } from "../lib/constants.js";
+import { generateEnvFileImpl } from "./generate-env-file.js";
 
 export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   // Handle various input types
@@ -42,6 +43,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   const requireAll = config.requireAll ?? false;
   const requireAny = config.requireAny ?? true;
   const generateTypes = config.generateTypes ?? false;
+  const generateEnvFile = config.generateEnvFile ?? false;
 
   try {
     // Find which files exist
@@ -154,21 +156,21 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
           }
 
           // Skip empty values (unless explicitly empty string)
-          if (value === "") {
-            // Check if it's meant to be empty string vs missing
-            if (workingLine.substring(equalsIndex + 1).trim() === "") {
-              // It's an explicit empty string
-              value = "";
-            } else {
-              // It's actually empty
-              if (verbose) {
-                console.warn(
-                  `${fileName}:${lineNumber}: Empty value for key '${key}', skipping`
-                );
-              }
-              return;
-            }
-          }
+          // if (value === "") {
+          //   // Check if it's meant to be empty string vs missing
+          //   if (workingLine.substring(equalsIndex + 1).trim() === "") {
+          //     // It's an explicit empty string
+          //     value = "";
+          //   } else {
+          //     // It's actually empty
+          //     if (verbose) {
+          //       console.warn(
+          //         `${fileName}:${lineNumber}: Empty value for key '${key}', skipping`
+          //       );
+          //     }
+          //     return;
+          //   }
+          // }
 
           // Check if we should override
           const alreadyLoaded = loadedVars.has(key);
@@ -217,6 +219,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
     }
 
     generateEnvTypes(loadedVars, generateTypes);
+    generateEnvFileImpl(loadedVars, generateEnvFile);
 
     if (verbose) {
       const loadedKeys = Array.from(loadedVars);

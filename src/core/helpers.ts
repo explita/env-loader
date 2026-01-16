@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs";
-import { LoadOptions } from "../types";
-import { loadEnv } from "./loader";
-import { SYSTEM_SECRETS_PATH } from "../lib/constants";
+import type { LoadOptions } from "../types.js";
+import { loadEnv } from "./loader.js";
+import { SYSTEM_SECRETS_PATH } from "../lib/constants.js";
 
 /**
  * EnvLoader helpers
@@ -60,7 +60,7 @@ export const EnvLoader = {
    * @returns
    */
   loadForEnvironment: (
-    env: "development" | "staging" | "production"
+    env: "development" | "staging" | "production" | (string & {})
   ): boolean => {
     const basePaths = [
       SYSTEM_SECRETS_PATH,
@@ -93,15 +93,32 @@ export function getVal(key: string, defaultValue?: string): string {
 }
 
 // Check if variables are loaded
+/**
+ * Check if variables are loaded
+ *
+ * @param keys
+ * @returns
+ */
 export function hasKeys(...keys: string[]): boolean {
   return keys.every((key) => process.env[key] !== undefined);
 }
 
 // Get all loaded keys from specific files
-export function getKeys(filePaths: string[]): Map<string, string[]> {
+/**
+ * Get all loaded keys from specific files
+ *
+ * @param filePaths
+ * @returns
+ */
+export function getKeys(filePaths?: string[]): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
-  filePaths.forEach((filePath) => {
+  const basePaths = filePaths || [
+    SYSTEM_SECRETS_PATH,
+    path.join(process.cwd(), ".env"),
+  ];
+
+  basePaths.forEach((filePath) => {
     if (fs.existsSync(filePath)) {
       try {
         const content = fs.readFileSync(filePath, "utf8");

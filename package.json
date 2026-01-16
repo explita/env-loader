@@ -1,6 +1,6 @@
 {
   "name": "@explita/env-loader",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.",
   "keywords": [
     "environment-variables",

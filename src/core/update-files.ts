@@ -1,16 +1,21 @@
 import fs from "fs";
 import path from "path";
+import ts from "typescript";
 
 export function updateFiles(declarationFile: string) {
   const cwd = process.cwd();
 
   // ---- tsconfig.json ----
-  const tsconfigFile = path.join(cwd, "tsconfig.json");
   let includedInTs = false;
 
   try {
-    const tsconfig = JSON.parse(fs.readFileSync(tsconfigFile, "utf8"));
-    const include = tsconfig.include ?? [];
+    const text = fs.readFileSync("tsconfig.json", "utf8");
+    const result = ts.parseConfigFileTextToJson("tsconfig.json", text);
+
+    if (result.error) return;
+
+    const tsconfig = result.config;
+    const include: string[] = tsconfig.include ?? [];
 
     const alreadyCovered =
       include.includes(declarationFile) ||
@@ -18,14 +23,18 @@ export function updateFiles(declarationFile: string) {
       include.includes("**/*.ts");
 
     if (!alreadyCovered) {
-      tsconfig.include = [...include, declarationFile];
-      fs.writeFileSync(tsconfigFile, JSON.stringify(tsconfig, null, 2));
-      console.log(`   Added to tsconfig.json`);
+      // tsconfig.include = [...include, declarationFile];
+      // fs.writeFileSync(tsconfigFile, JSON.stringify(tsconfig, null, 2));
+      // console.log(`   Added to tsconfig.json`);
+      console.log(
+        `   Please add ${declarationFile} to the include array in your tsconfig.json.`
+      );
       includedInTs = true;
     } else {
       includedInTs = true;
     }
-  } catch {
+  } catch (error) {
+    // console.log(error);
     // ignore
   }
 

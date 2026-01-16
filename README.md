@@ -11,6 +11,7 @@ Advanced environment variable loader with multi-file support, hot reload, and cr
 - **Zero Dependencies**: Lightweight and fast, no external runtime dependencies.
 - **Secret Masking**: Automatically masks sensitive values (keys, tokens, passwords) in verbose logs.
 - **Enterprise Ready**: Supports `/etc/internal-secrets.env` out of the box for secure deployments.
+- **Smart Runtime**: Generates a type-safe `env.ts` for easy runtime access (Node.js only).
 - **Standard Compliant**: Supports `#` comments, inline comments, and `export` prefixes.
 
 #
@@ -78,6 +79,54 @@ loadEnv({
 
 #
 
+### 🛠 Runtime Environment File (`env.ts`)
+
+For Node.js applications, you can generate a centralized `env.ts` file that exports all your environment variables. This provides a clean way to access variables across your project without worrying about where they were loaded from.
+
+```typescript
+import { loadEnv } from "@explita/env-loader";
+
+loadEnv({
+  generateEnvFile: true, // Generates src/lib/env.ts or lib/env.ts or your specified path
+  generateTypes: true, // Generates env.d.ts in the root or your specified path
+});
+
+// If you are using import "@explita/env-loader/auto";
+// It will generate the env.d.ts and env.ts file automatically
+```
+
+**Usage in your project:**
+
+```typescript
+import { DATABASE_URL, API_TOKEN } from "@/lib/env";
+
+console.log(DATABASE_URL);
+```
+
+> [!IMPORTANT] > **Client Framework Detection**: If the loader detects a client-side framework (like Next.js or Vite), it will automatically skip generating the `env.ts` file. This is a security measure to prevent accidental exposure of server-side secrets to the client browser.
+
+#
+
+### 🛠 Helpers & Utilities
+
+The library provides several helper functions to simplify common tasks:
+
+#### `EnvLoader` Object
+
+Common loading patterns wrapped in a clean API:
+
+- `EnvLoader.loadWithPrecedence(paths, options)`: Later files always override earlier ones.
+- `EnvLoader.loadSystemAndApp(appEnvPath?)`: Loads system secrets and then your app's `.env`.
+- `EnvLoader.loadForEnvironment(env)`: Loads system secrets, `.env.{env}`, and `.env` in order.
+
+#### Utility Functions
+
+- `getVal(key, defaultValue?)`: A type-safe way to get an environment variable. In development, it warns if a key is missing.
+- `hasKeys(...keys)`: Returns `true` if all specified keys are defined in `process.env`.
+- `getKeys(filePaths?)`: Reads one or more `.env` files and returns a `Map` of filenames to their contained variable names.
+
+#
+
 ### 🏢 System-wide Secrets & Enterprise Use
 
 The `internal-secrets.env` file is a powerful feature for enterprise environments and local development workflows. It allows you to maintain a single source of truth for sensitive credentials that are shared across multiple projects (e.g., database passwords, cloud provider keys).
@@ -131,6 +180,7 @@ Next.js performs static analysis and "inlines" environment variables during the 
 | `requireAll`       | `boolean`            | `false`                      | If `true`, the loader will fail if any specified file is missing.                                |
 | `requireAny`       | `boolean`            | `true`                       | If `true`, at least one file must exist for the loader to succeed.                               |
 | `generateTypes`    | `boolean \| string`  | `false`                      | If `true`, generates `env.d.ts`. If a string, specifies the output path.                         |
+| `generateEnvFile`  | `boolean \| string`  | `false`                      | If `true`, generates `env.ts` in `lib`. If a string, specifies the output path.                  |
 
 #
 
