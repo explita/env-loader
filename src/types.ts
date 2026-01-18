@@ -6,4 +6,5 @@ export interface LoadOptions {
   requireAny?: boolean; // Require at least one file (default: true)
   generateTypes?: boolean | string; // Generate TypeScript declarations
   generateEnvFile?: boolean | string; // Generate env.ts file
+  watch?: boolean; // Watch for changes in environment files
 }

@@ -9,7 +9,8 @@ Advanced environment variable loader with multi-file support, hot reload, and cr
 - **Multi-file Support**: Load multiple `.env` files in a specific order with override control.
 - **Auto Type Generation**: Automatically generates `env.d.ts` for your environment variables.
 - **Zero Dependencies**: Lightweight and fast, no external runtime dependencies.
-- **Secret Masking**: Automatically masks sensitive values (keys, tokens, passwords) in verbose logs.
+- **Hot Reload**: Automatically reloads environment variables when files change (opt-in).
+- **Secret Masking**: Automatically masks sensitive values in verbose logs for better security.
 - **Enterprise Ready**: Supports `/etc/internal-secrets.env` out of the box for secure deployments.
 - **Smart Runtime**: Generates a type-safe `env.ts` for easy runtime access (Node.js only).
 - **Standard Compliant**: Supports `#` comments, inline comments, and `export` prefixes.
@@ -104,6 +105,34 @@ console.log(DATABASE_URL);
 ```
 
 > [!IMPORTANT] > **Client Framework Detection**: If the loader detects a client-side framework (like Next.js or Vite), it will automatically skip generating the `env.ts` file. This is a security measure to prevent accidental exposure of server-side secrets to the client browser.
+> And to avoid runtime errors in client-side frameworks like Next.js or Vite where they inline the environment variables at build time.
+
+#
+
+### 📝 Hot Reload (Watcher)
+
+Enable automatic reloading of environment variables when your `.env` files change. This is perfect for long-running processes or dev servers.
+
+`Type declarations and env.ts files are generated only when environment keys change.
+Value changes do not regenerate types.`
+
+```typescript
+import { loadEnv } from "@explita/env-loader";
+
+loadEnv({
+  watch: true,
+});
+
+//import "@explita/env-loader/auto";
+// Enables hot reload and auto generation of env.d.ts and env.ts files.
+```
+
+> [!NOTE]
+> To keep the core library lightweight, the watcher requires `chokidar` to be installed in your project:
+> `npm install -D chokidar`
+
+> [!TIP]
+> **Automatic Server Restart**: When `watch` and `generateEnvFile` are enabled, changes to your environment **keys** will trigger a file regeneration. Since dev servers (Vite, Next.js, `tsx`, `nodemon`) watch for changes in your `src` or `lib` directories, they will automatically restart the server for you. This creates a seamless development workflow where adding a new variable to `.env` immediately makes it available and typed in your code without a manual restart.
 
 #
 
@@ -121,7 +150,7 @@ Common loading patterns wrapped in a clean API:
 
 #### Utility Functions
 
-- `getVal(key, defaultValue?)`: A type-safe way to get an environment variable. In development, it warns if a key is missing.
+- `getEnv(key, defaultValue?)`: A type-safe way to get an environment variable. In development, it warns if a key is missing.
 - `hasKeys(...keys)`: Returns `true` if all specified keys are defined in `process.env`.
 - `getKeys(filePaths?)`: Reads one or more `.env` files and returns a `Map` of filenames to their contained variable names.
 

@@ -25,9 +25,9 @@ export function updateFiles(declarationFile: string) {
     if (!alreadyCovered) {
       // tsconfig.include = [...include, declarationFile];
       // fs.writeFileSync(tsconfigFile, JSON.stringify(tsconfig, null, 2));
-      // console.log(`   Added to tsconfig.json`);
+      // console.log(`[env-loader]: Added to tsconfig.json`);
       console.log(
-        `   Please add ${declarationFile} to the include array in your tsconfig.json.`
+        `[env-loader]: Please add ${declarationFile} to the include array in your tsconfig.json.`,
       );
       includedInTs = true;
     } else {
@@ -50,7 +50,7 @@ export function updateFiles(declarationFile: string) {
 
     if (!gitIgnoreContent.includes(declarationFile)) {
       fs.appendFileSync(gitIgnoreFile, `\n${declarationFile}`);
-      console.log(`   Added to .gitignore`);
+      console.log(`[env-loader]: Added to .gitignore`);
     }
   }
 }

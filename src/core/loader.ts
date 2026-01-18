@@ -4,6 +4,7 @@ import path from "path";
 import { generateEnvTypes } from "./generate-types.js";
 import { SYSTEM_SECRETS_PATH } from "../lib/constants.js";
 import { generateEnvFileImpl } from "./generate-env-file.js";
+import { watchFiles } from "./watcher.js";
 
 export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   // Handle various input types
@@ -42,8 +43,14 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   const overrideExisting = config.overrideExisting ?? false;
   const requireAll = config.requireAll ?? false;
   const requireAny = config.requireAny ?? true;
-  const generateTypes = config.generateTypes ?? false;
-  const generateEnvFile = config.generateEnvFile ?? false;
+  let generateTypes = config.generateTypes ?? false;
+  let generateEnvFile = config.generateEnvFile ?? false;
+  const watch = config.watch ?? false;
+
+  if (process.env.NODE_ENV === "production") {
+    generateTypes = false;
+    generateEnvFile = false;
+  }
 
   try {
     // Find which files exist
@@ -60,33 +67,41 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
 
     // Log missing files if verbose
     if (verbose && missingFiles.length > 0) {
-      console.warn(`Env files not found: ${missingFiles.join(", ")}`);
+      console.warn(
+        `[env-loader]: Env files not found: ${missingFiles.join(", ")}`,
+      );
     }
 
     // Check if we have enough files
     if (existingFiles.length === 0) {
       if (verbose) {
-        console.warn(`No env files found. Tried: ${envPaths.join(", ")}`);
+        console.warn(
+          `[env-loader]: No env files found. Tried: ${envPaths.join(", ")}`,
+        );
       }
       return !requireAny; // If we don't require any, return true
     }
 
     if (requireAll && missingFiles.length > 0) {
       if (verbose) {
-        console.error(`Required files missing: ${missingFiles.join(", ")}`);
+        console.error(
+          `[env-loader]: Required files missing: ${missingFiles.join(", ")}`,
+        );
       }
       return false;
     }
 
     if (verbose) {
       console.log(
-        `Loading env files (${existingFiles.length} of ${envPaths.length}):`
+        `[env-loader]: Loading env files (${existingFiles.length} of ${envPaths.length}):`,
       );
 
-      existingFiles.forEach((file) => console.log(`  ✓ ${file}`));
+      existingFiles.forEach((file) => console.log(`[env-loader]: ✓ ${file}`));
 
       if (missingFiles.length > 0) {
-        missingFiles.forEach((file) => console.log(`  ✗ ${file} (not found)`));
+        missingFiles.forEach((file) =>
+          console.log(`[env-loader]: ✗ ${file} (not found)`),
+        );
       }
     }
 
@@ -120,10 +135,10 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
           if (equalsIndex === -1) {
             if (verbose) {
               console.warn(
-                `${fileName}:${lineNumber}: No '=' found, skipping: "${workingLine.substring(
+                `[env-loader]: ${fileName}:${lineNumber}: No '=' found, skipping: "${workingLine.substring(
                   0,
-                  50
-                )}..."`
+                  50,
+                )}..."`,
               );
             }
             return;
@@ -136,7 +151,9 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
           // Skip if no key
           if (!key) {
             if (verbose) {
-              console.warn(`${fileName}:${lineNumber}: Empty key, skipping`);
+              console.warn(
+                `[env-loader]: ${fileName}:${lineNumber}: Empty key, skipping`,
+              );
             }
             return;
           }
@@ -165,7 +182,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
           //     // It's actually empty
           //     if (verbose) {
           //       console.warn(
-          //         `${fileName}:${lineNumber}: Empty value for key '${key}', skipping`
+          //         `[env-loader]: ${fileName}:${lineNumber}: Empty value for key '${key}', skipping`
           //       );
           //     }
           //     return;
@@ -177,7 +194,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
           if (alreadyLoaded && !overrideExisting) {
             if (verbose) {
               console.log(
-                `${fileName}:${lineNumber}: Key '${key}' already loaded, skipping`
+                `[env-loader]: ${fileName}:${lineNumber}: Key '${key}' already loaded, skipping`,
               );
             }
             return;
@@ -202,28 +219,45 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
 
             const overrideFlag = alreadyLoaded ? " (override)" : "";
             console.log(
-              `${fileName}:${lineNumber}: ${key}=${displayValue}${overrideFlag}`
+              `[env-loader]: ${fileName}:${lineNumber}: ${key}=${displayValue}${overrideFlag}`,
             );
           }
         });
 
         if (verbose && fileLoaded > 0) {
-          console.log(`→ Loaded ${fileLoaded} variables from ${fileName}`);
+          console.log(
+            `[env-loader]: → Loaded ${fileLoaded} variables from ${fileName}`,
+          );
         }
       } catch (fileError) {
-        console.error(`Error reading file ${filePath}:`, fileError);
+        console.error(
+          `[env-loader]: Error reading file ${filePath}:`,
+          fileError,
+        );
         if (requireAll) {
           return false;
         }
       }
     }
 
-    generateEnvTypes(loadedVars, generateTypes);
-    generateEnvFileImpl(loadedVars, generateEnvFile);
+    const sortedKeys = Array.from(loadedVars).sort();
+
+    generateEnvTypes(sortedKeys, generateTypes);
+    generateEnvFileImpl(sortedKeys, generateEnvFile);
+    //@ts-ignore
+    if (!config?.__internalReload) {
+      watchFiles({
+        watch,
+        path: existingFiles,
+        options: { ...config, paths: existingFiles },
+      });
+    }
 
     if (verbose) {
       const loadedKeys = Array.from(loadedVars);
-      console.log(`\n✅ Loaded ${totalLoaded} unique environment variables:`);
+      console.log(
+        `\n[env-loader]: ✅ Loaded ${totalLoaded} unique environment variables:`,
+      );
       console.log(`   Files: ${existingFiles.length}/${envPaths.length}`);
       console.log(`   Variables: ${loadedKeys.sort().join(", ")}`);
 
@@ -252,7 +286,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
 
           if (fileVars.length > 0) {
             console.log(
-              `  ${path.basename(filePath)}: ${fileVars.sort().join(", ")}`
+              `  ${path.basename(filePath)}: ${fileVars.sort().join(", ")}`,
             );
           }
         });
@@ -261,7 +295,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
 
     return totalLoaded > 0 || !requireAny;
   } catch (error) {
-    console.error(`Error in loadSharedEnv:`, error);
+    console.error(`[env-loader]: Error in loadEnv:`, error);
     return false;
   }
 }

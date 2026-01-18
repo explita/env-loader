@@ -26,7 +26,7 @@ export const EnvLoader = {
    */
   loadWithPrecedence: (
     paths: string[],
-    options?: Omit<LoadOptions, "paths">
+    options?: Omit<LoadOptions, "paths">,
   ): boolean => {
     return loadEnv({
       paths,
@@ -60,7 +60,7 @@ export const EnvLoader = {
    * @returns
    */
   loadForEnvironment: (
-    env: "development" | "staging" | "production" | (string & {})
+    env: "development" | "staging" | "production" | (string & {}),
   ): boolean => {
     const basePaths = [
       SYSTEM_SECRETS_PATH,
@@ -78,7 +78,10 @@ export const EnvLoader = {
 };
 
 // Type-safe environment variable getter
-export function getVal(key: string, defaultValue?: string): string {
+export function getEnv(
+  key: keyof NodeJS.ProcessEnv | (string & {}),
+  defaultValue?: string,
+): string {
   const value = process.env[key];
   if (value !== undefined) return value;
 
@@ -86,7 +89,7 @@ export function getVal(key: string, defaultValue?: string): string {
 
   // Throw in development to catch missing env vars early
   if (process.env["NODE_ENV"] === "development") {
-    console.warn(`Environment variable "${key}" is not defined`);
+    console.warn(`[env-loader]: Environment variable "${key}" is not defined`);
   }
 
   return "";
@@ -99,7 +102,9 @@ export function getVal(key: string, defaultValue?: string): string {
  * @param keys
  * @returns
  */
-export function hasKeys(...keys: string[]): boolean {
+export function hasKeys(
+  ...keys: (keyof NodeJS.ProcessEnv | (string & {}))[]
+): boolean {
   return keys.every((key) => process.env[key] !== undefined);
 }
 
