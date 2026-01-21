@@ -1,6 +1,6 @@
 {
   "name": "@explita/env-loader",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.",
   "keywords": [
     "environment-variables",
@@ -34,6 +34,11 @@
       "import": "./dist/core/auto-config.js",
       "require": "./dist/core/auto-config.js",
       "types": "./dist/core/auto-config.d.ts"
+    },
+    "./auto/watch": {
+      "import": "./dist/core/auto-config-watch.js",
+      "require": "./dist/core/auto-config-watch.js",
+      "types": "./dist/core/auto-config-watch.d.ts"
     },
     "./package.json": "./package.json"
   },

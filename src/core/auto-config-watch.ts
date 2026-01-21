@@ -22,7 +22,7 @@ import { SYSTEM_SECRETS_PATH } from "../lib/constants.js";
     overrideExisting: true,
     generateTypes: NODE_ENV === "development",
     generateEnvFile: true,
-    watch: false,
+    watch: true,
   });
 })();
 

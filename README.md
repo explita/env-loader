@@ -51,6 +51,9 @@ import "@explita/env-loader/auto";
 
 // CommonJS
 require("@explita/env-loader/auto");
+
+// If you want to enable watch mode.
+import "@explita/env-loader/auto/watch";
 ```
 
 Import this once at the start of your application or entry point.
@@ -92,7 +95,7 @@ loadEnv({
   generateTypes: true, // Generates env.d.ts in the root or your specified path
 });
 
-// If you are using import "@explita/env-loader/auto";
+// If you are using import "@explita/env-loader/auto"; or import "@explita/env-loader/auto/watch";
 // It will generate the env.d.ts and env.ts file automatically
 ```
 
@@ -123,9 +126,13 @@ loadEnv({
   watch: true,
 });
 
-//import "@explita/env-loader/auto";
+//import "@explita/env-loader/auto/watch";
 // Enables hot reload and auto generation of env.d.ts and env.ts files.
 ```
+
+> [!NOTE]
+> Do not use watch mode in CLI contexts (for example, inside a Prisma config file).
+> Watch mode keeps the Node.js process alive and will prevent CLI commands from exiting.
 
 > [!NOTE]
 > To keep the core library lightweight, the watcher requires `chokidar` to be installed in your project:
@@ -188,6 +195,7 @@ export const API_KEY = process.env.API_KEY;
 ```typescript
 // Anywhere in your app
 import "@explita/env-loader/auto";
+// or import "@explita/env-loader/auto/watch";
 const apiKey = process.env.API_KEY; // Access directly
 ```
 
