@@ -1,6 +1,10 @@
 {
   "name": "@explita/env-loader",
-  "version": "0.1.4",
+  "version": "0.1.5",
+  "author": "Explita",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
   "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.",
   "keywords": [
     "environment-variables",
@@ -20,8 +24,6 @@
     "zero-dependency",
     "production-ready"
   ],
-  "author": "Explita",
-  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

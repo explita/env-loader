@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import ts from "typescript";
 
 let timer: NodeJS.Timeout | undefined;
 
@@ -29,3 +30,13 @@ export function isPublicKey(key: string) {
 }
 
 export const normalize = (s: string) => s.replace(/\r\n/g, "\n");
+
+export function readTsConfig(): any | null {
+  try {
+    const text = fs.readFileSync("tsconfig.json", "utf8");
+    const result = ts.parseConfigFileTextToJson("tsconfig.json", text);
+    return result.error ? null : result.config;
+  } catch {
+    return null;
+  }
+}

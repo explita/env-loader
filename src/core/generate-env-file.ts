@@ -13,13 +13,13 @@ export function generateEnvFileImpl(
   generateEnvFile: LoadOptions["generateEnvFile"],
 ) {
   const isClient = isClientFramework();
+  const shouldSkip =
+    isClient ||
+    !generateEnvFile ||
+    keys.length === 0 ||
+    process.env.NODE_ENV === "production";
 
-  if (!generateEnvFile || keys.length === 0) return;
-
-  if (isClient) {
-    // console.log("⚠️ Skipping env.ts generation: client framework detected.");
-    return;
-  }
+  if (shouldSkip) return;
 
   const cwd = process.cwd();
 
@@ -49,10 +49,12 @@ export function generateEnvFileImpl(
   const filename = path.basename(outputPath);
   const filePath = path.join(targetDir, filename);
 
-  // Sort keys alphabetically for readability
+  // prepend NODE_ENV to keys
   const keysArray = Array.from(new Set(["NODE_ENV", ...keys]));
 
   const nonPublicKeys = keysArray.filter((key) => !isPublicKey(key));
+
+  if (nonPublicKeys.length === 0) return;
 
   const exportBlock = `export const {
 ${nonPublicKeys.map((key) => `  ${key},`).join("\n")}

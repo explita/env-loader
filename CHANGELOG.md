@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-01-26
+
+### Added
+
+- Created a robust internal `readTsConfig` utility utilizing the official TypeScript parser to ensure accurate project configuration reading.
+
+### Fixed
+
+- Improved `tsconfig.json` validation logic to check both `include` and `files` arrays, reducing false-positive warnings for generated declaration files.
+- Added early exit logic during environment file generation to handle edge cases where no environment keys are identified.
+
+### Changed
+
+- Refined `env.ts` generation to consistently prepend `NODE_ENV` to the exported keys for better predictability.
+- Updated package metadata to explicitly support ESM (`type: module`) and optimize tree-shaking (`sideEffects: false`).
+
 ## [0.1.4] - 2026-01-21
 
 ### Added
