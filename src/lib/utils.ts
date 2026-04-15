@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import ts from "typescript";
+import { SYSTEM_SECRETS_PATH } from "./constants.js";
 
 let timer: NodeJS.Timeout | undefined;
 
@@ -39,4 +40,13 @@ export function readTsConfig(): any | null {
   } catch {
     return null;
   }
+}
+
+export function getEnvFiles(NODE_ENV: string) {
+  return [
+    SYSTEM_SECRETS_PATH,
+    ...[`.env.${NODE_ENV}.local`, `.env.${NODE_ENV}`, ".env.local", ".env"].map(
+      (p) => path.resolve(process.cwd(), p),
+    ),
+  ];
 }

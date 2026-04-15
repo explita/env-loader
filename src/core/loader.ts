@@ -2,9 +2,9 @@ import type { LoadOptions } from "../types.js";
 import fs from "fs";
 import path from "path";
 import { generateEnvTypes } from "./generate-types.js";
-import { SYSTEM_SECRETS_PATH } from "../lib/constants.js";
 import { generateEnvFileImpl } from "./generate-env-file.js";
 import { watchFiles } from "./watcher.js";
+import { getEnvFiles } from "../lib/utils.js";
 
 export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   // Handle various input types
@@ -21,10 +21,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   }
 
   // Default paths if none specified
-  const defaultPaths = [
-    path.join(process.cwd(), ".env"), // Project .env
-    SYSTEM_SECRETS_PATH, // System-wide secrets
-  ];
+  const defaultPaths = getEnvFiles(process.env.NODE_ENV || "development");
 
   // Normalize paths to array
   const envPaths: string[] = [];

@@ -6,11 +6,3 @@ import path from "path";
  * Linux/macOS: /etc/internal-secrets.env
  */
 export const SYSTEM_SECRETS_PATH = "/etc/internal-secrets.env";
-
-/**
- * Default environment variable files priority
- */
-export const DEFAULT_ENV_PATHS = [
-  path.join(process.cwd(), ".env"),
-  SYSTEM_SECRETS_PATH,
-];

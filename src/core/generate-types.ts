@@ -25,13 +25,13 @@ export function generateEnvTypes(
 
   let generatedKeys = nonPublicKeys;
 
-  let sanitizePubKeys = "";
+  let sanitizedPubKeys = "";
 
   const isClient = isClientFramework();
 
   if (isClient && publicKeys.length > 0) {
     generatedKeys = [...generatedKeys, ...publicKeys];
-    sanitizePubKeys = `
+    sanitizedPubKeys = `
     // Client-accessible environment variables (${publicKeys.length} variables)
 ${publicKeys.map((key) => `      ${key}: string;`).join("\n")}`;
   }
@@ -49,7 +49,7 @@ declare global {
       // Server-only environment variables (${nonPublicKeys.length} variables)
 ${nonPublicKeys.map((key) => `      ${key}: string;`).join("\n")}
       
-      ${sanitizePubKeys}
+      ${sanitizedPubKeys}
       
     //   // Common web server variables
     //   PORT?: string;
