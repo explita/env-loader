@@ -44,7 +44,7 @@ declare global {
     interface ProcessEnv {
       // Node.js built-in
       NODE_ENV: 'development' | 'production' | 'test' | (string & {});
-      TZ?: string;
+      TZ${!keys.includes("TZ") ? "?" : ""}: string;
       
       // Server-only environment variables (${nonPublicKeys.length} variables)
 ${nonPublicKeys.map((key) => `      ${key}: string;`).join("\n")}

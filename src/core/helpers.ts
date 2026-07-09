@@ -43,7 +43,7 @@ export const EnvLoader = {
    */
   loadSystemAndApp: (appEnvPath?: string): boolean => {
     const paths = [
-      SYSTEM_SECRETS_PATH,
+      ...SYSTEM_SECRETS_PATH,
       appEnvPath || path.join(process.cwd(), ".env"),
     ].filter(Boolean);
 
@@ -63,7 +63,7 @@ export const EnvLoader = {
     env: "development" | "staging" | "production" | (string & {}),
   ): boolean => {
     const basePaths = [
-      SYSTEM_SECRETS_PATH,
+      ...SYSTEM_SECRETS_PATH,
       path.join(process.cwd(), `.env.${env}`),
       path.join(process.cwd(), ".env"),
     ];
@@ -95,7 +95,6 @@ export function getEnv(
   return "";
 }
 
-// Check if variables are loaded
 /**
  * Check if variables are loaded
  *
@@ -108,7 +107,6 @@ export function hasKeys(
   return keys.every((key) => process.env[key] !== undefined);
 }
 
-// Get all loaded keys from specific files
 /**
  * Get all loaded keys from specific files
  *
@@ -119,7 +117,7 @@ export function getKeys(filePaths?: string[]): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
   const basePaths = filePaths || [
-    SYSTEM_SECRETS_PATH,
+    ...SYSTEM_SECRETS_PATH,
     path.join(process.cwd(), ".env"),
   ];
 

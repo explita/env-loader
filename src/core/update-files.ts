@@ -1,8 +1,8 @@
 import { readTsConfig } from "../lib/utils.js";
 
-export function updateFiles(declarationFile: string) {
+export async function updateFiles(declarationFile: string) {
   try {
-    const tsConfig = readTsConfig();
+    const tsConfig = await readTsConfig();
 
     if (!tsConfig) return;
 

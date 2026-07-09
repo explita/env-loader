@@ -1,6 +1,6 @@
 # @explita/env-loader
 
-Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.
+Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,8 +11,8 @@ Advanced environment variable loader with multi-file support, hot reload, and cr
 - **Zero Dependencies**: Lightweight and fast, no external runtime dependencies.
 - **Hot Reload**: Automatically reloads environment variables when files change (opt-in).
 - **Secret Masking**: Automatically masks sensitive values in verbose logs for better security.
-- **Enterprise Ready**: Supports `/etc/internal-secrets.env` out of the box for secure deployments.
-- **Smart Runtime**: Generates a type-safe `env.ts` for easy runtime access (Node.js only).
+- **Enterprise Ready**: Supports `/etc/internal-secrets.env` and `/etc/shared-secrets.env` out of the box for secure deployments.
+- **Smart Runtime**: Generates a type-safe `env.ts` for easy runtime access.
 - **Standard Compliant**: Supports `#` comments, inline comments, and `export` prefixes.
 
 #
@@ -31,7 +31,7 @@ pnpm add @explita/env-loader
 
 ### Basic Usage
 
-Load the default `.env` files (current directory `.env` and `/etc/internal-secrets.env`):
+Load the default `.env` files (current directory `.env`, `/etc/internal-secrets.env`, and `/etc/shared-secrets.env`):
 
 ```typescript
 import { loadEnv } from "@explita/env-loader";
@@ -61,10 +61,11 @@ Import this once at the start of your application or entry point.
 The auto-loader searches for files in this priority order:
 
 1. `/etc/internal-secrets.env`
-2. `.env.${NODE_ENV}.local`
-3. `.env.${NODE_ENV}`
-4. `.env.local`
-5. `.env`
+2. `/etc/shared-secrets.env`
+3. `.env.${NODE_ENV}.local`
+4. `.env.${NODE_ENV}`
+5. `.env.local`
+6. `.env`
 
 #
 
@@ -107,9 +108,6 @@ import { DATABASE_URL, API_TOKEN } from "@/lib/env";
 console.log(DATABASE_URL);
 ```
 
-> [!IMPORTANT] > **Client Framework Detection**: If the loader detects a client-side framework (like Next.js or Vite), it will automatically skip generating the `env.ts` file. This is a security measure to prevent accidental exposure of server-side secrets to the client browser.
-> And to avoid runtime errors in client-side frameworks like Next.js or Vite where they inline the environment variables at build time.
-
 #
 
 ### 📝 Hot Reload (Watcher)
@@ -135,8 +133,7 @@ loadEnv({
 > Watch mode keeps the Node.js process alive and will prevent CLI commands from exiting.
 
 > [!NOTE]
-> To keep the core library lightweight, the watcher requires `chokidar` to be installed in your project:
-> `npm install -D chokidar`
+> To keep the core library lightweight, `chokidar` is an optional dependency. If it's not installed, the watcher falls back to Node's built-in `fs.watch` (less reliable across platforms, but zero dependencies).
 
 > [!TIP]
 > **Automatic Server Restart**: When `watch` and `generateEnvFile` are enabled, changes to your environment **keys** will trigger a file regeneration. Since dev servers (Vite, Next.js, `tsx`, `nodemon`) watch for changes in your `src` or `lib` directories, they will automatically restart the server for you. This creates a seamless development workflow where adding a new variable to `.env` immediately makes it available and typed in your code without a manual restart.
@@ -165,41 +162,37 @@ Common loading patterns wrapped in a clean API:
 
 ### 🏢 System-wide Secrets & Enterprise Use
 
-The `internal-secrets.env` file is a powerful feature for enterprise environments and local development workflows. It allows you to maintain a single source of truth for sensitive credentials that are shared across multiple projects (e.g., database passwords, cloud provider keys).
+The loader automatically checks two system-level secret files before any project-level `.env` files:
+
+| File                        | Purpose                                                                                          |
+| :-------------------------- | :----------------------------------------------------------------------------------------------- |
+| `/etc/internal-secrets.env` | Project-specific internal secrets (e.g., database credentials, API keys).                        |
+| `/etc/shared-secrets.env`   | Shared secrets across multiple projects (e.g., cloud provider keys, organizational credentials). |
+
+This allows you to maintain a single source of truth for sensitive credentials without duplicating them across projects.
 
 #### Why use it?
 
 - **No Duplication**: Stop copying `.env` files from project to project. Update a secret once, and every project that uses `@explita/env-loader` gets the update instantly.
 - **Security**: Keep your most sensitive secrets outside of your project directory, reducing the risk of accidental git commits.
 - **Cross-platform Compatibility**:
-  - **Linux/macOS**: `/etc/internal-secrets.env`
-  - **Windows**: `\etc\internal-secrets.env` (resolves to the root of the current drive, e.g., `C:\etc\...` or `D:\etc\...`)
+  - **Linux/macOS**: `/etc/internal-secrets.env` and `/etc/shared-secrets.env`
+  - **Windows**: `\etc\internal-secrets.env` and `\etc\shared-secrets.env` (resolves to the root of the current drive, e.g., `C:\etc\...` or `D:\etc\...`)
 
 #
 
-### ⚠️ Next.js Production Warning
+### ⚠️ NODE_ENV Conflict Warning
 
-When using this loader with **Next.js**, especially for files outside the project root (like system-wide secrets), you **must** access variables directly via `process.env.YOUR_KEY`.
+Setting `NODE_ENV` in your external env files can cause issues regardless of the value:
 
-**Avoid doing this in a config file:**
+| Value | Problem |
+| :---- | :------ |
+| `NODE_ENV=development` | Breaks production builds (Next.js, etc. expect `production` during build). |
+| `NODE_ENV=production` | Breaks development — no source maps, no HMR, and the loader skips type/file generation. |
 
-```typescript
-// config.ts - THIS WILL BREAK IN PRODUCTION
-import { loadEnv } from "@explita/env-loader";
-loadEnv();
-export const API_KEY = process.env.API_KEY;
-```
+The loader also uses `NODE_ENV` to resolve which `.env` files to load (`.env.production`, `.env.development`, etc.). If it's set early in an external file, it overrides the intended environment before the project-level files are even considered.
 
-**Do this instead:**
-
-```typescript
-// Anywhere in your app
-import "@explita/env-loader/auto";
-// or import "@explita/env-loader/auto/watch";
-const apiKey = process.env.API_KEY; // Access directly
-```
-
-Next.js performs static analysis and "inlines" environment variables during the build process. If you export them from a custom configuration file that loads them at runtime from an external path, they may not be correctly captured or available in the production bundle.
+**Avoid setting `NODE_ENV` in your external env files.** Let your runtime environment (shell, Docker, CI) control it instead.
 
 #
 
@@ -209,21 +202,50 @@ Next.js performs static analysis and "inlines" environment variables during the 
 
 ##### `LoadOptions`
 
-| Option             | Type                 | Default                      | Description                                                                                      |
-| :----------------- | :------------------- | :--------------------------- | :----------------------------------------------------------------------------------------------- |
-| `paths`            | `string \| string[]` | `['.env', 'system-secrets']` | Path or array of paths to `.env` files. (Roots: `/etc` on Unix, current drive `\etc` on Windows) |
-| `verbose`          | `boolean \| 'debug'` | `false`                      | Enable detailed logging. `'debug'` shows variable sources.                                       |
-| `overrideExisting` | `boolean`            | `false`                      | If `true`, later files will override variables set by earlier files or the environment.          |
-| `requireAll`       | `boolean`            | `false`                      | If `true`, the loader will fail if any specified file is missing.                                |
-| `requireAny`       | `boolean`            | `true`                       | If `true`, at least one file must exist for the loader to succeed.                               |
-| `generateTypes`    | `boolean \| string`  | `false`                      | If `true`, generates `env.d.ts`. If a string, specifies the output path.                         |
-| `generateEnvFile`  | `boolean \| string`  | `false`                      | If `true`, generates `env.ts` in `lib`. If a string, specifies the output path.                  |
+| Option             | Type                 | Default                    | Description                                                                                                                                           |
+| :----------------- | :------------------- | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `paths`            | `string \| string[]` | `[system-secrets, '.env']` | Path or array of paths to `.env` files. Defaults to `/etc/internal-secrets.env`, `/etc/shared-secrets.env`, and environment-appropriate `.env` files. |
+| `verbose`          | `boolean \| 'debug'` | `false`                    | Enable detailed logging. `'debug'` shows variable sources.                                                                                            |
+| `overrideExisting` | `boolean`            | `false`                    | If `true`, later files will override variables set by earlier files or the environment.                                                               |
+| `requireAll`       | `boolean`            | `false`                    | If `true`, the loader will fail if any specified file is missing.                                                                                     |
+| `requireAny`       | `boolean`            | `true`                     | If `true`, at least one file must exist for the loader to succeed.                                                                                    |
+| `generateTypes`    | `boolean \| string`  | `false`                    | If `true`, generates `env.d.ts`. If a string, specifies the output path.                                                                              |
+| `generateEnvFile`  | `boolean \| string`  | `false`                    | If `true`, generates `env.ts` in `lib`. If a string, specifies the output path.                                                                       |
+| `watch`            | `boolean`            | `false`                    | Watch `.env` files for changes and auto-reload. Uses `chokidar` if available, falls back to `fs.watch`.                                               |
+| `ignore`           | `string[]`           | `[]`                       | List of environment variable keys to skip — they won't be set on `process.env`.                                                                       |
 
 #
 
 ### 🛡 Security
 
 Sensitive variables containing keywords like `key`, `secret`, `token`, or `password` are automatically masked in the verbose output to prevent accidental exposure in logs.
+
+#
+
+## 💖 Support the Mission
+
+Env Loader is built to simplify and secure environment variable management across your projects. If it has improved your development workflow or deployment security, please consider supporting the project to ensure its continued growth and maintenance!
+
+<p align="left">
+  <a href="https://github.com/sponsors/explita">
+    <img src="https://img.shields.io/badge/Sponsor_on_GitHub-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white" />
+  </a>
+  <a href="https://ko-fi.com/explita">
+    <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" />
+  </a>
+</p>
+
+### 🚀 Ways to Contribute
+
+- **Give us a ⭐**: It helps others discover the project.
+- **Join the Discussion**: Report [bugs](https://github.com/explita/env-loader/issues) or suggest new [features](https://github.com/explita/env-loader/discussions).
+- **Spread the Word**: Share your experience with Env Loader on social media.
+
+### 🙏 Our Amazing Supporters
+
+_A huge thank you to everyone helping us build better dev tools!_
+
+[![Contributors](https://contrib.rocks/image?repo=explita/env-loader)](https://github.com/explita/env-loader/graphs/contributors)
 
 #
 

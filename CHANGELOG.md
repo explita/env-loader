@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-09
+
+### Added
+
+- **`ignore` option**: List of environment variable keys to skip — they won't be set on `process.env`.
+- **`fs.watch` fallback**: When `chokidar` is not installed, the watcher falls back to Node's built-in `fs.watch` instead of failing silently.
+- **`/etc/shared-secrets.env`**: `SYSTEM_SECRETS_PATH` is now an array supporting both `/etc/internal-secrets.env` and `/etc/shared-secrets.env`.
+
+### Changed
+
+- **`generateEnvFile` no longer skips client frameworks**: The `isClientFramework()` check was removed. The generated `env.ts` works in any Node.js context — it's up to the developer to avoid importing it from client components.
+- **`chokidar` moved to `optionalDependencies`**: Properly signals it's an optional enhancement without triggering peer-dep warnings.
+- **`_internalReload` → `__internalReload`**: Fixed the reload guard flag mismatch that caused duplicate watchers on every file change.
+
 ## [0.1.6] - 2026-04-15
 
 ### Added
@@ -19,7 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Refactored `loadEnv` and auto-configuration entry points (`/auto` and `/auto/watch`) to utilize the centralized resolution logic.
-
 
 ## [0.1.5] - 2026-01-26
 

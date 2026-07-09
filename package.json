@@ -1,11 +1,10 @@
 {
   "name": "@explita/env-loader",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "author": "Explita",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
-  "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching. Ideal for Node.js, Next.js, and enterprise applications.",
+  "description": "Advanced environment variable loader with multi-file support, hot reload, and cross-platform file watching.",
   "keywords": [
     "environment-variables",
     "env",
@@ -44,6 +43,10 @@
     },
     "./package.json": "./package.json"
   },
+  "sideEffects": [
+    "./dist/core/auto-config.js",
+    "./dist/core/auto-config-watch.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/explita/env-loader.git"
@@ -66,6 +69,9 @@
     "chokidar": "^5.0.0",
     "rimraf": "^6.1.2",
     "typescript": "^5.8.3"
+  },
+  "optionalDependencies": {
+    "chokidar": "^5"
   },
   "files": [
     "dist",

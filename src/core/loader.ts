@@ -6,6 +6,23 @@ import { generateEnvFileImpl } from "./generate-env-file.js";
 import { watchFiles } from "./watcher.js";
 import { getEnvFiles } from "../lib/utils.js";
 
+/**
+ * Load environment variables from `.env` files into `process.env`.
+ *
+ * Automatically resolves the appropriate `.env` files based on `NODE_ENV`.
+ * Supports file ordering, variable overriding, type generation, and file watching.
+ *
+ * @param options - Load options, a single path string, or an array of paths.
+ *   When a string or array is passed, it's treated as the `paths` option.
+ * @returns `true` if environment variables were loaded successfully, `false` otherwise.
+ *
+ * @example
+ * ```ts
+ * loadEnv();
+ * loadEnv({ paths: [".env.local", ".env"], overrideExisting: true });
+ * loadEnv(".env.production");
+ * ```
+ */
 export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   // Handle various input types
   let config: LoadOptions;
@@ -43,6 +60,7 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
   let generateTypes = config.generateTypes ?? false;
   let generateEnvFile = config.generateEnvFile ?? false;
   const watch = config.watch ?? false;
+  const ignore = new Set(config.ignore ?? []);
 
   if (process.env.NODE_ENV === "production") {
     generateTypes = false;
@@ -152,6 +170,16 @@ export function loadEnv(options?: LoadOptions | string | string[]): boolean {
                 `[env-loader]: ${fileName}:${lineNumber}: Empty key, skipping`,
               );
             }
+            return;
+          }
+
+          // Skip if ignored
+          if (ignore.has(key)) {
+            // if (verbose) {
+            //   console.warn(
+            //     `[env-loader]: Ignored key '${key}', skipping`,
+            //   );
+            // }
             return;
           }
 

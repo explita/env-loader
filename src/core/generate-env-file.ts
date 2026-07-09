@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { LoadOptions } from "../types.js";
-import { isClientFramework, isPublicKey, normalize } from "../lib/utils.js";
+import { isPublicKey, normalize } from "../lib/utils.js";
 
 /**
  * Generate a centralized `env.ts` file with all loaded environment variables.
@@ -12,9 +12,7 @@ export function generateEnvFileImpl(
   keys: string[],
   generateEnvFile: LoadOptions["generateEnvFile"],
 ) {
-  const isClient = isClientFramework();
   const shouldSkip =
-    isClient ||
     !generateEnvFile ||
     keys.length === 0 ||
     process.env.NODE_ENV === "production";

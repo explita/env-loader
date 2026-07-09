@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import ts from "typescript";
 import { SYSTEM_SECRETS_PATH } from "./constants.js";
 
 let timer: NodeJS.Timeout | undefined;
@@ -32,8 +31,9 @@ export function isPublicKey(key: string) {
 
 export const normalize = (s: string) => s.replace(/\r\n/g, "\n");
 
-export function readTsConfig(): any | null {
+export async function readTsConfig(): Promise<any | null> {
   try {
+    const { default: ts } = await import("typescript");
     const text = fs.readFileSync("tsconfig.json", "utf8");
     const result = ts.parseConfigFileTextToJson("tsconfig.json", text);
     return result.error ? null : result.config;
@@ -44,7 +44,7 @@ export function readTsConfig(): any | null {
 
 export function getEnvFiles(NODE_ENV: string) {
   return [
-    SYSTEM_SECRETS_PATH,
+    ...SYSTEM_SECRETS_PATH,
     ...[`.env.${NODE_ENV}.local`, `.env.${NODE_ENV}`, ".env.local", ".env"].map(
       (p) => path.resolve(process.cwd(), p),
     ),
